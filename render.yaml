@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: rag-docqa-pwa
+    runtime: python
+    plan: standard            # 2 GB RAM。torch + 嵌入模型約需 1 GB 以上，512 MB 方案會 OOM
+    buildCommand: >-
+      pip install -r requirements.txt &&
+      python -c "import os; from sentence_transformers import SentenceTransformer as S; S(os.getenv('EMBED_MODEL','intfloat/multilingual-e5-small'))"
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: HF_HOME
+        value: /opt/render/project/src/.hf_cache
+      - key: GROQ_API_KEY        # 選填：公開網站建議留空，讓使用者輸入自己的 Key
+        sync: false
+      - key: ACCESS_CODE         # 選填：設定後使用者需輸入存取碼才能呼叫 API（請用英數字）
+        sync: false
